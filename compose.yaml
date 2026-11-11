@@ -35,7 +35,7 @@ services:
       - ./config.toml:/etc/nami/config.toml:ro
 
   web:
-    image: ghcr.io/cosnami/nami-web:1.0.0
+    image: ghcr.io/cosnami/nami-web:1.1.0
     restart: unless-stopped
 
   caddy:
