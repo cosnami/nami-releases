@@ -1,0 +1,71 @@
+# 由 install.sh 下载，重新运行安装命令会更新；配置在 .env 与 config.toml。
+# 镜像版本由发布流程写入 nami-releases 中的这份文件。
+name: nami
+
+services:
+  postgres:
+    image: postgres:18.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: pg_isready -U nami
+      interval: 5s
+
+  redis:
+    image: redis:8.10.0-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:?} --appendonly yes
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: redis-cli -a ${REDIS_PASSWORD} --no-auth-warning ping
+      interval: 5s
+
+  server:
+    image: ghcr.io/cosnami/nami-server:1.0.0
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    volumes:
+      - ./config.toml:/etc/nami/config.toml:ro
+
+  web:
+    image: ghcr.io/cosnami/nami-web:1.0.0
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      - caddy:/data
+
+configs:
+  caddyfile:
+    content: |
+      ${NAMI_DOMAIN:?} {
+        reverse_proxy /api/* server:4433
+        reverse_proxy web:3000
+      }
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24 # 与 config.toml 的 trusted_proxies 一致
+
+volumes:
+  postgres:
+  redis:
+  caddy:
