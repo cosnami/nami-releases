@@ -3,7 +3,7 @@
 # nami-edge that manages it. The admin console shows the install command for each host:
 #
 #   curl -fsSL https://github.com/cosnami/nami-releases/raw/main/edge/install.sh \
-#     | sudo NAMI_URL='https://panel.example.com' NAMI_EDGE_TOKEN='nami-edge.…' NAMI_VERSION='1.1.0' bash
+#     | sudo NAMI_URL='https://panel.example.com' NAMI_EDGE_TOKEN='edge.…' NAMI_VERSION='1.1.0' bash
 #
 # Without NAMI_URL and NAMI_EDGE_TOKEN an existing configuration is kept. Without NAMI_VERSION
 # the newest release is installed.
@@ -86,7 +86,7 @@ install_edge() {
 
   if [[ -n ${NAMI_URL:-} ]]; then
     [[ $NAMI_URL =~ ^https?://[^[:space:]\"\\]+$ ]] || fail "NAMI_URL 不是 http(s) 地址 / NAMI_URL is not an http(s) URL"
-    [[ $NAMI_EDGE_TOKEN =~ ^nami-edge\.[^[:space:]\"\\]+$ ]] || fail "NAMI_EDGE_TOKEN 无效 / NAMI_EDGE_TOKEN is not an Edge token"
+    [[ $NAMI_EDGE_TOKEN =~ ^edge\.[^[:space:]\"\\]+$ ]] || fail "NAMI_EDGE_TOKEN 无效 / NAMI_EDGE_TOKEN is not an Edge token"
     (
       umask 077
       cat >"$config_dir/config.toml" <<CONFIG
