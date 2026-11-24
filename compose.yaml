@@ -33,9 +33,10 @@ services:
       redis: { condition: service_healthy }
     volumes:
       - ./config.toml:/etc/nami/config.toml:ro
+      - data:/etc/nami/data
 
   web:
-    image: ghcr.io/cosnami/nami-web:1.1.0
+    image: ghcr.io/cosnami/nami-web:1.2.0
     restart: unless-stopped
 
   caddy:
@@ -68,4 +69,5 @@ networks:
 volumes:
   postgres:
   redis:
+  data:
   caddy:
