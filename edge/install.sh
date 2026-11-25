@@ -3,14 +3,15 @@
 # nami-edge that manages it. The admin console shows the install command for each host:
 #
 #   curl -fsSL https://github.com/cosnami/nami-releases/raw/main/edge/install.sh \
-#     | sudo NAMI_URL='https://panel.example.com' NAMI_EDGE_TOKEN='edge.…' NAMI_VERSION='1.3.0' bash
+#     | sudo NAMI_URL='https://panel.example.com' NAMI_EDGE_TOKEN='edge.…' NAMI_VERSION='1.3.1' bash
 #
 # Without NAMI_URL and NAMI_EDGE_TOKEN an existing configuration is kept. Without NAMI_VERSION
-# the newest release is installed.
+# the release that edge/latest.json names is installed.
 set -euo pipefail
 
 repository=cosnami/nami-releases
 script_url=https://github.com/$repository/raw/main/edge/install.sh
+manifest_url=https://github.com/$repository/raw/main/edge/latest.json
 
 user=nami-edge
 binary=/opt/nami-edge/nami-edge
@@ -54,8 +55,8 @@ install_edge() {
   fi
 
   if [[ -z $version ]]; then
-    version=$(curl -fsSL "https://api.github.com/repos/$repository/releases?per_page=100" |
-      grep -o '"tag_name": *"edge-v[^"]*"' | head -1 | sed 's/.*"edge-v//; s/"$//') || true
+    version=$(curl -fsSL --retry 3 "$manifest_url" |
+      sed -n 's/.*"version": *"\([^"]*\)".*/\1/p') || true
     [[ -n $version ]] || fail "找不到 edge 的发布版本 / no Edge release found in $repository"
   fi
 
